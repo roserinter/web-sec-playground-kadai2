@@ -13,7 +13,11 @@ const links = [
     label: "ショップ",
     info: "Cookie入門、SWR入門、zod入門",
   },
-  { href: "/login", label: "ログイン", info: "セッションベース認証入門" },
+  {
+    href: "/login",
+    label: "ログイン",
+    info: "セッションベース認証入門/トークンベース認証入門",
+  },
   {
     href: "/signup",
     label: "サインアップ",

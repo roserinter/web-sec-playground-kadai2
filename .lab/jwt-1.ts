@@ -22,7 +22,7 @@ const main = async () => {
     .sign(secret);
   console.log(`[1] JWT: ${jwt}\n`);
 
-  // [2] JWＴのデコード (署名を検証せずにペイロードを取得)
+  // [2] JWTのデコード (署名を検証せずにペイロードを取得)
   const decoded = decodeJwt(jwt);
   console.log(`[2] Decoded : ${JSON.stringify(decoded, null, 2)}\n`);
 
