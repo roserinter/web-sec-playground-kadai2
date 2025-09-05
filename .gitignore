@@ -4,7 +4,9 @@
 /prisma/app.db
 
 # docs
-/docs
+/docs/*
+!/docs/images/
+!/docs/images/*
 
 # dependencies
 /node_modules
