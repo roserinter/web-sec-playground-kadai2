@@ -39,7 +39,12 @@ model User {
   updatedAt    DateTime    @updatedAt @map("updated_at")
   lastLoginAt  DateTime?   @map("last_login_at")
 
+  // 追加: ロックと失敗カウント
+  isLocked     Boolean     @default(false) @map("is_locked")
+  failedCount  Int         @default(0)     @map("failed_count")
+
   sessions     Session[]
+  loginHistories LoginHistory[]
 
   @@map("users")
 }
@@ -59,17 +64,6 @@ model StolenContent {
   content     String
   createdAt   DateTime  @default(now()) @map("created_at")
   @@map("stolen_contents")
-}
-
-model NewsItem {
-  id          String   @id @default(uuid())
-  title       String
-  content     String   @default("")
-  region      Region
-  publishedAt DateTime @default(now()) @map("published_at")
-
-  @@map("news")
-  @@index([region])
 }
 
 model Product {
@@ -101,4 +95,16 @@ model CartItem {
   @@index([cartSessionId])
   @@unique([cartSessionId, productId])
   @@map("cart_items")
+}
+
+model LoginHistory {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ip        String   @default("")
+  userAgent String   @default("") @map("user_agent")
+  success   Boolean
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("login_histories")
 }

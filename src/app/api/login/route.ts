@@ -1,3 +1,4 @@
+import bcrypt from "bcryptjs";
 import { prisma } from "@/libs/prisma";
 import { loginRequestSchema } from "@/app/_types/LoginRequest";
 import { userProfileSchema } from "@/app/_types/UserProfile";
@@ -5,8 +6,6 @@ import type { UserProfile } from "@/app/_types/UserProfile";
 import type { ApiResponse } from "@/app/_types/ApiResponse";
 import { NextResponse, NextRequest } from "next/server";
 import { createSession } from "@/app/api/_helper/createSession";
-import { createJwt } from "@/app/api/_helper/createJwt";
-import { AUTH } from "@/config/auth";
 
 // キャッシュを無効化して毎回最新情報を取得
 export const dynamic = "force-dynamic";
@@ -30,50 +29,85 @@ export const POST = async (req: NextRequest) => {
       where: { email: loginRequest.email },
     });
     if (!user) {
-      // 💀 このアカウント（メールアドレス）の有効無効が分かってしまう。
       const res: ApiResponse<null> = {
         success: false,
         payload: null,
-        message: "このメールアドレスは登録されていません。",
-        // message: "メールアドレスまたはパスワードの組み合わせが正しくありません。",
+        message: "メールアドレスまたはパスワードの組み合わせが正しくありません。",
       };
       return NextResponse.json(res);
     }
 
-    // パスワードの検証
-    // ✍ bcrypt でハッシュ化したパスワードを検証ように書き換えよ。
-    const isValidPassword = user.password === loginRequest.password;
+    const userAny = user as any;
+
+    // Check lock state
+    if (userAny.isLocked) {
+      await (prisma as any).loginHistory.create({
+        data: {
+          userId: userAny.id,
+          ip: req.headers.get("x-forwarded-for") ?? "",
+          userAgent: req.headers.get("user-agent") ?? "",
+          success: false,
+        },
+      });
+      const res: ApiResponse<null> = {
+        success: false,
+        payload: null,
+        message: "アカウントがロックされています。",
+      };
+      return NextResponse.json(res);
+    }
+
+    // パスワードの検証 (bcrypt.compare)
+    const isValidPassword = await bcrypt.compare(
+      loginRequest.password,
+      userAny.password
+    );
     if (!isValidPassword) {
+      const newFailed = (userAny.failedCount ?? 0) + 1;
+      const willLock = newFailed >= 5; // 5回でロック
+      const updateData: any = { failedCount: newFailed, isLocked: willLock };
+      await prisma.user.update({ where: { id: userAny.id }, data: updateData });
+
+      await (prisma as any).loginHistory.create({
+        data: {
+          userId: userAny.id,
+          ip: req.headers.get("x-forwarded-for") ?? "",
+          userAgent: req.headers.get("user-agent") ?? "",
+          success: false,
+        },
+      });
+
       const res: ApiResponse<null> = {
         success: false,
         payload: null,
-        message:
-          "メールアドレスまたはパスワードの組み合わせが正しくありません。",
+        message: willLock
+          ? "パスワードの誤入力が続いたためアカウントをロックしました。"
+          : "メールアドレスまたはパスワードの組み合わせが正しくありません。",
       };
       return NextResponse.json(res);
     }
 
+    // 認証成功時：failedCount リセット、履歴記録
+    const successUpdate: any = { failedCount: 0, isLocked: false, lastLoginAt: new Date() };
+    await prisma.user.update({ where: { id: userAny.id }, data: successUpdate });
+    await (prisma as any).loginHistory.create({
+      data: {
+        userId: userAny.id,
+        ip: req.headers.get("x-forwarded-for") ?? "",
+        userAgent: req.headers.get("user-agent") ?? "",
+        success: true,
+      },
+    });
+
+    // セッションベース認証のみをサポート
     const tokenMaxAgeSeconds = 60 * 60 * 3; // 3時間
-
-    if (AUTH.isSession) {
-      // ■■ セッションベース認証の処理 ■■
-      await createSession(user.id, tokenMaxAgeSeconds);
-      const res: ApiResponse<UserProfile> = {
-        success: true,
-        payload: userProfileSchema.parse(user), // 余分なプロパティを削除
-        message: "",
-      };
-      return NextResponse.json(res);
-    } else {
-      // ■■ トークンベース認証の処理 ■■
-      const jwt = await createJwt(user, tokenMaxAgeSeconds);
-      const res: ApiResponse<string> = {
-        success: true,
-        payload: jwt,
-        message: "",
-      };
-      return NextResponse.json(res);
-    }
+    await createSession(userAny.id, tokenMaxAgeSeconds);
+    const res: ApiResponse<UserProfile> = {
+      success: true,
+      payload: userProfileSchema.parse(userAny),
+      message: "",
+    };
+    return NextResponse.json(res);
   } catch (e) {
     const errorMsg = e instanceof Error ? e.message : "Internal Server Error";
     console.error(errorMsg);
