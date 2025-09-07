@@ -15,21 +15,21 @@
 ## 1) 評価者向けナビ（スクショ/実装位置）
 
 1. サインアップ画面（パスワード強度メーター表示）
-   - 画像: `docs/images/signup_strength.png`
+  - 画像: ![signup_strength](docs/images/signup_strength.png)
    - 実装: `src/app/signup/page.tsx`, `src/app/_components/PasswordStrength.tsx`
    - 確認事項: 入力に応じた強度スコア、一定未満で登録ボタン無効化
 
 2. ログイン失敗 → 連続N回でロック
-   - 画像: `docs/images/lockout_flow.png`
+  - 画像: ![lockout_flow](docs/images/lockout_flow.png)
    - 実装: `src/app/api/login/route.ts`, `prisma/schema.prisma` の `isLocked` / `failedCount`
    - 確認事項: 失敗で `failedCount` が増え、閾値到達で `isLocked=true`
 
 3. 管理者ページ（ロックユーザ一覧 / ロック解除）
-   - 画像: `docs/images/locked_users.png`
+  - 画像: ![locked_users](docs/images/locked_users.png)
    - 実装: `src/app/api/admin/users/route.ts`, `src/app/admin/users/page.tsx`
    - 確認事項: admin 権限でロック済みユーザ一覧と解除ボタンが動作する
 
-（任意） デモ動画: `docs/demo.mp4`
+（任意） デモ動画: [docs/demo.mp4](docs/demo.mp4)
 
 ---
 
@@ -72,11 +72,11 @@
 
 | 項目 | 仕様/要件 | 実装位置 | 確認画像 |
 |---|---|---|---|
-| セッション認証 | サーバ側セッション + Cookie | `src/app/api/_helper/createSession.ts`, `src/app/api/_helper/verifySession.ts` | 画像1 |
+| セッション認証 | サーバ側セッション + Cookie | `src/app/api/_helper/createSession.ts`, `src/app/api/_helper/verifySession.ts` | ![signup_strength](docs/images/signup_strength.png) |
 | パスワードハッシュ | bcrypt による保存・比較 | `prisma/seed.ts`, `src/app/_actions/signup.ts`, `src/app/api/login/route.ts` | 画像1 |
-| Cookie 属性 | HttpOnly / SameSite=Strict / Secure (prod) | `src/app/api/_helper/createSession.ts` | 画像2 |
+| Cookie 属性 | HttpOnly / SameSite=Strict / Secure (prod) | `src/app/api/_helper/createSession.ts` | ![lockout_flow](docs/images/lockout_flow.png) |
 | ロック実装 | failedCount インクリメント・閾値で isLocked=true | `src/app/api/login/route.ts`, Prisma User | 画像2 |
-| ログイン履歴 | IP/UA/成功フラグの保存と閲覧 | `src/app/api/me/security/route.ts`, `src/app/me/security/page.tsx` | 画像4 |
+| ログイン履歴 | IP/UA/成功フラグの保存と閲覧 | `src/app/api/me/security/route.ts`, `src/app/me/security/page.tsx` | ![me_security](docs/images/me_security.png) |
 
 ---
 

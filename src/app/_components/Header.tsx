@@ -37,6 +37,23 @@ export const Header: React.FC = () => {
             <div className="ml-2 text-sm text-slate-400">
               <div className="flex items-center gap-x-2">
                 <div className="text-slate-200">{userProfile.name}</div>
+                {/* 管理者ログイン時のみセキュリティ履歴へのナビを表示 */}
+                {userProfile.role === "ADMIN" && (
+                  <>
+                    <NextLink
+                      href="/admin/users"
+                      className={twMerge("text-slate-300 hover:text-white px-2")}
+                    >
+                      管理
+                    </NextLink>
+                    <NextLink
+                      href="/me/security"
+                      className={twMerge("text-slate-300 hover:text-white px-2")}
+                    >
+                      セキュリティ
+                    </NextLink>
+                  </>
+                )}
                 <div
                   className={twMerge("cursor-pointer hover:text-white")}
                   onClick={logout}

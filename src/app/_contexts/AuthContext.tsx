@@ -4,7 +4,6 @@ import React, { useState, useEffect, createContext } from "react";
 import type { UserProfile } from "@/app/_types/UserProfile";
 import useSWR, { mutate } from "swr";
 import type { ApiResponse } from "../_types/ApiResponse";
-import { jwtFetcher } from "./jwtFetcher";
 import { sessionFetcher } from "./sessionFetcher";
 import { AUTH } from "@/config/auth";
 
@@ -23,9 +22,10 @@ interface Props {
 
 const AuthProvider: React.FC<Props> = ({ children }) => {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  // 本リポジトリはセッションベース認証に統一しているため sessionFetcher のみ使用
   const { data: session } = useSWR<ApiResponse<UserProfile | null>>(
     "/api/auth",
-    AUTH.isSession ? sessionFetcher : jwtFetcher,
+    sessionFetcher,
   );
 
   useEffect(() => {

@@ -16,6 +16,7 @@ import { faSpinner, faPenNib } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { signupServerAction } from "@/app/_actions/signup";
+import { PasswordStrength } from "@/app/_components/PasswordStrength";
 
 const Page: React.FC = () => {
   const c_Name = "name";
@@ -80,6 +81,21 @@ const Page: React.FC = () => {
     }
   };
 
+  // パスワード強度スコア（PasswordStrength と同じロジックで簡易判定）
+  const watchedPassword = formMethods.watch(c_Password);
+  const calcPasswordScore = (pw: string | undefined) => {
+    if (!pw || pw.length === 0) return 0;
+    let score = 0;
+    if (pw.length >= 8) score += 1;
+    if (pw.length >= 12) score += 1;
+    if (/[a-z]/.test(pw)) score += 1;
+    if (/[A-Z]/.test(pw)) score += 1;
+    if (/[0-9]/.test(pw)) score += 1;
+    if (/[^A-Za-z0-9]/.test(pw)) score += 1;
+    return score; // 0..6
+  };
+  const pwdScore = calcPasswordScore(watchedPassword);
+
   return (
     <main>
       <div className="text-2xl font-bold">
@@ -137,6 +153,7 @@ const Page: React.FC = () => {
             autoComplete="off"
           />
           <ErrorMsgField msg={fieldErrors.password?.message} />
+          <PasswordStrength password={watchedPassword} />
           <ErrorMsgField msg={fieldErrors.root?.message} />
         </div>
 
@@ -147,7 +164,8 @@ const Page: React.FC = () => {
           disabled={
             !formMethods.formState.isValid ||
             formMethods.formState.isSubmitting ||
-            isSignUpCompleted
+            isSignUpCompleted ||
+            pwdScore < 3 // 簡易閾値: スコアが3未満なら登録不可
           }
         >
           登録
