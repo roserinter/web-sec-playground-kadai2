@@ -1,5 +1,4 @@
-````markdown
----
+
 
 # web-sec-auth (Next.js / セッションベース認証)
 
