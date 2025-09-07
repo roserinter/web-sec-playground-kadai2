@@ -24,7 +24,7 @@
    - 確認事項: 失敗で `failedCount` が増え、閾値到達で `isLocked=true`
 
 3. 管理者ページ（ロックユーザ一覧 / ロック解除）
-  - 画像: ![locked_users](screan-shot/locked_users.png)
+  - 画像: ![locked_users](screan-shot/lockout_users.png)
    - 実装: `src/app/api/admin/users/route.ts`, `src/app/admin/users/page.tsx`
    - 確認事項: admin 権限でロック済みユーザ一覧と解除ボタンが動作する
 
