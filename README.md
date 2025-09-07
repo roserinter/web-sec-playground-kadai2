@@ -127,26 +127,3 @@ docs/images/*.png
 
 ---
 
-## 9) 検証手順（起動しない評価者向け）
-
-- 画像1 (signup_strength.png): サインアップで強度が低いと登録ボタンが無効になる
-- 画像2 (lockout_flow.png): ログインをN回失敗するとアカウントがロックされる
-- 画像3 (forbidden_admin.png): admin ではないと `/admin` にアクセスできない
-- 画像4 (me_security.png): `/me/security` で過去ログイン履歴が見られる
-
----
-
-
-## 10) 付録：ローカルでの実行手順（参考）
-
-```bash
-npm install
-npx prisma db push
-npx prisma generate
-npx prisma db seed
-npm run dev
-
-
----
-
-
