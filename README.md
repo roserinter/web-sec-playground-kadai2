@@ -15,21 +15,21 @@
 ## 1) 評価者向けナビ（スクショ/実装位置）
 
 1. サインアップ画面（パスワード強度メーター表示）
-  - 画像: ![signup_strength](docs/images/signup_strength.png)
+  - 画像: ![signup_strength](screan-shot/ignup_strength.png)
    - 実装: `src/app/signup/page.tsx`, `src/app/_components/PasswordStrength.tsx`
    - 確認事項: 入力に応じた強度スコア、一定未満で登録ボタン無効化
 
 2. ログイン失敗 → 連続N回でロック
-  - 画像: ![lockout_flow](docs/images/lockout_flow.png)
+  - 画像: ![lockout_flow](screan-shot/lockout_flow.png)
    - 実装: `src/app/api/login/route.ts`, `prisma/schema.prisma` の `isLocked` / `failedCount`
    - 確認事項: 失敗で `failedCount` が増え、閾値到達で `isLocked=true`
 
 3. 管理者ページ（ロックユーザ一覧 / ロック解除）
-  - 画像: ![locked_users](docs/images/locked_users.png)
+  - 画像: ![locked_users](screan-shot/locked_users.png)
    - 実装: `src/app/api/admin/users/route.ts`, `src/app/admin/users/page.tsx`
    - 確認事項: admin 権限でロック済みユーザ一覧と解除ボタンが動作する
 
-（任意） デモ動画: [docs/demo.mp4](docs/demo.mp4)
+
 
 ---
 
@@ -58,25 +58,27 @@
 ## 4) アクセス制御表（RBAC）
 
 | パス | 説明 | user | admin | 未ログイン |
-|---|---:|:---:|:---:|:---:|
-| `/` | ホーム | ○ | ○ | ○ |
-| `/signup` | 会員登録 | ○ | ○ | ○ |
-| `/login` | ログイン | ○ | ○ | ○ |
-| `/dashboard` | 会員専用ページ | ○ | ○ | × |
-| `/me/security` | セキュリティ履歴 | ○ | ○ | × |
-| `/admin` | 管理ページ | × | ○ | × |
+|---|---|:--:|:--:|:--:|
+| `/` | ホーム | ✅ | ✅ | ✅ |
+| `/signup` | 会員登録 | ✅ | ✅ | ✅ |
+| `/login` | ログイン | ✅ | ✅ | ✅ |
+| `/dashboard` | 会員専用ページ | ✅ | ✅ | ❌ |
+| `/me/security` | セキュリティ履歴（個人のログ） | ✅ | ✅ | ❌ |
+| `/admin` | 管理ページ（ユーザ管理） | ❌ | ✅ | ❌ |
+
+> 注: `✅` はアクセス可能、`❌` はアクセス不可を示します。
 
 ---
 
 ## 5) 仕様 → 実装 → 確認方法（エビデンス対応表）
 
-| 項目 | 仕様/要件 | 実装位置 | 確認画像 |
-|---|---|---|---|
-| セッション認証 | サーバ側セッション + Cookie | `src/app/api/_helper/createSession.ts`, `src/app/api/_helper/verifySession.ts` | ![signup_strength](docs/images/signup_strength.png) |
-| パスワードハッシュ | bcrypt による保存・比較 | `prisma/seed.ts`, `src/app/_actions/signup.ts`, `src/app/api/login/route.ts` | 画像1 |
-| Cookie 属性 | HttpOnly / SameSite=Strict / Secure (prod) | `src/app/api/_helper/createSession.ts` | ![lockout_flow](docs/images/lockout_flow.png) |
-| ロック実装 | failedCount インクリメント・閾値で isLocked=true | `src/app/api/login/route.ts`, Prisma User | 画像2 |
-| ログイン履歴 | IP/UA/成功フラグの保存と閲覧 | `src/app/api/me/security/route.ts`, `src/app/me/security/page.tsx` | ![me_security](docs/images/me_security.png) |
+| 項目 | 仕様 / 要件 | 実装ファイル（主な場所） | 確認画像 |
+|---|---|---|:--:|
+| セッション認証 | サーバ側セッション + Cookie（HttpOnly, SameSite） | `src/app/api/_helper/createSession.ts`<br>`src/app/api/_helper/verifySession.ts` | ![signup_strength](screan-shot/ignup_strength.png) |
+| パスワードハッシュ | bcrypt による保存・比較（シード / サインアップ / ログイン） | `prisma/seed.ts`<br>`src/app/_actions/signup.ts`<br>`src/app/api/login/route.ts` | （スクリーンショット参照） |
+| Cookie 属性 | HttpOnly / SameSite=Strict / Secure (prod) | `src/app/api/_helper/createSession.ts` | ![lockout_flow](screan-shot/lockout_flow.png) |
+| ロック実装 | `failedCount` インクリメント → 閾値で `isLocked=true` | `src/app/api/login/route.ts`<br>`prisma/schema.prisma` (`User.isLocked`, `User.failedCount`) | （スクリーンショット参照） |
+| ログイン履歴 | IP / UA / 成功フラグを `LoginHistory` に記録、閲覧可能 | `src/app/api/me/security/route.ts`<br>`src/app/me/security/page.tsx` | ![me_security](screan-shot/rogin.png) |
 
 ---
 
@@ -135,14 +137,8 @@ docs/images/*.png
 
 ---
 
-## 10) 既知の制限 / 今後の改善
 
-- パスワードリセットは未実装（将来的にメールによるリセットを追加予定）
-- レート制限は簡易実装のため、プロダクションでは WAF やリバースプロキシで補強推奨
-
----
-
-## 11) 付録：ローカルでの実行手順（参考）
+## 10) 付録：ローカルでの実行手順（参考）
 
 ```bash
 npm install
@@ -150,15 +146,8 @@ npx prisma db push
 npx prisma generate
 npx prisma db seed
 npm run dev
-# 別ターミナルで自動スクリーンショット
-node scripts/capture-screenshots.js
-```
+
 
 ---
 
-# 仕上げのコツ
-- 画像には短い説明を付ける（何を示すか1行で）
-- 実装ファイルは相対パスで明記
-- 不要コード削除の宣言を明記しておくと査定で有利
-````
 
