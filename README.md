@@ -74,7 +74,7 @@
 | 項目 | 仕様 / 要件 | 実装ファイル（主な場所） | 確認画像 |
 |---|---|---|:--:|
 | セッション認証 | サーバ側セッション + Cookie（HttpOnly, SameSite） | `src/app/api/_helper/createSession.ts`<br>`src/app/api/_helper/verifySession.ts` | ![signup_strength](screan-shot/ignup_strength.png) |
-| パスワードハッシュ | bcrypt による保存・比較（シード / サインアップ / ログイン） | `prisma/seed.ts`<br>`src/app/_actions/signup.ts`<br>`src/app/api/login/route.ts` | ![image]（screan-shot/image.png） |
+| パスワードハッシュ | bcrypt による保存・比較（シード / サインアップ / ログイン） | `prisma/seed.ts`<br>`src/app/_actions/signup.ts`<br>`src/app/api/login/route.ts` |![image](screan-shot/image.png) |
 | Cookie 属性 | HttpOnly / SameSite=Strict / Secure (prod) | `src/app/api/_helper/createSession.ts` | ![lockout_flow](screan-shot/lockout_flow.png) |
 | ロック実装 | `failedCount` インクリメント → 閾値で `isLocked=true` | `src/app/api/login/route.ts`<br>`prisma/schema.prisma` (`User.isLocked`, `User.failedCount`) | ![lockout_flow](screan-shot/lockout_flow.png) |
 | ログイン履歴 | IP / UA / 成功フラグを `LoginHistory` に記録、閲覧可能 | `src/app/api/me/security/route.ts`<br>`src/app/me/security/page.tsx` | ![me_security](screan-shot/rogin.png) |
